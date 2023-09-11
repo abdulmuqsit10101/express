@@ -1,15 +1,25 @@
 const fs = require('fs');
+const morgan = require('morgan');
 const express = require('express');
 
 const app = express();
 // * Middleware
 app.use(express.json())
+app.use(morgan('dev'));
+
+
+app.use((req, res, next) => {
+    req.requestTime = new Date().toDateString();
+    next();
+})
 
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`));
 
 const getAllTours = (req, res) => {
+    console.log('reqestedAt : ', req.requestTime);
     res.status(200).json({
         status: 'success',
+        requestedAt: req.requestTime,
         results: tours.length,
         tours
     });
