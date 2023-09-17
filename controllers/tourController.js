@@ -1,6 +1,20 @@
 const fs = require('fs');
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`));
 
+const checkID = (req, res, next, value) => {
+    const { id } = value;
+    const tour = tours.find(el => el.id === id);
+
+    if (!tour) {
+        return res.status(404).json({
+            status: 'fail',
+            message: 'Invalid ID'
+        })
+    }
+
+    next();
+}
+
 const getAllTours = (req, res) => {
     console.log('reqestedAt : ', req.requestTime);
     res.status(200).json({
@@ -29,13 +43,6 @@ const getTour = (req, res) => {
     const id = req.params.id * 1;
     const tour = tours.find(el => el.id === id);
 
-    if (!tour) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'Invalid ID'
-        })
-    }
-
     res.status(200).json({
         status: 'success',
         data: {
@@ -56,15 +63,7 @@ const updateTour = (req, res) => {
     const tour = tours.find(el => el.id === id);
     const indexOfTour = tours.indexOf(tour);
     const newTour = Object.assign({ ...tour }, req.body);
-    console.log('indexOfTour => ', indexOfTour);
     tours[indexOfTour] = newTour;
-
-    if (!tour) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'Invalid ID'
-        })
-    }
 
     fs.writeFile(`${__dirname}/../dev-data/data/tours-simple.json`, JSON.stringify(tours), (err) => {
         if (err) return res.status(404).send('Something went wrong');
@@ -77,15 +76,7 @@ const updateTour = (req, res) => {
 
 const deleteTour = (req, res) => {
     const id = req.params.id * 1;
-    const tour = tours.find(el => el.id === id);
     const updateToursList = tours.filter(el => el.id !== id);
-
-    if (!tour) {
-        return res.status(404).json({
-            status: 'fail',
-            message: 'Invalid ID'
-        })
-    }
 
     fs.writeFile(`${__dirname}/../dev-data/data/tours-simple.json`, JSON.stringify(updateToursList), (err) => {
         if (err) return res.status(404).send(`Something went wrong ${err?.message || err}`);
@@ -96,4 +87,4 @@ const deleteTour = (req, res) => {
     })
 }
 
-module.exports = { getAllTours, createNewTour, getTour, updateTour, deleteTour }
+module.exports = { getAllTours, createNewTour, getTour, updateTour, deleteTour, checkID }
