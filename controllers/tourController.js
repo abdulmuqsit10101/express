@@ -2,7 +2,7 @@ const fs = require('fs');
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`));
 
 const checkID = (req, res, next, value) => {
-    const { id } = value;
+    const id  = value * 1;
     const tour = tours.find(el => el.id === id);
 
     if (!tour) {
@@ -15,8 +15,17 @@ const checkID = (req, res, next, value) => {
     next();
 }
 
+const checkBody = (req, res, next) => {
+    if(!req.body.name || !req.body.price) {
+        return res.status(400).json({
+            status: 'fail',
+            message: 'Name and Price must be send in the body object'
+        })
+    }
+    next();
+}
+
 const getAllTours = (req, res) => {
-    console.log('reqestedAt : ', req.requestTime);
     res.status(200).json({
         status: 'success',
         requestedAt: req.requestTime,
@@ -87,4 +96,4 @@ const deleteTour = (req, res) => {
     })
 }
 
-module.exports = { getAllTours, createNewTour, getTour, updateTour, deleteTour, checkID }
+module.exports = { getAllTours, createNewTour, getTour, updateTour, deleteTour, checkID, checkBody }
