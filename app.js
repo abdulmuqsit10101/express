@@ -16,9 +16,15 @@ app.use((req, res, next) => {
   req.requestTime = new Date().toDateString();
   next();
 });
-
 // Tour Routers
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+app.all('*', (req, res, next) => {
+  res.status(404).json({
+    status: 'failed!',
+    message: `Can't find ${req.originalUrl} on this server!`,
+  });
+});
 
 module.exports = app;
