@@ -1,7 +1,6 @@
 const AppError = require('../utils/appError');
 
 const sendErrorDev = (err, res) => {
-  console.log('error => ', err);
   res.status(err.statusCode).json({
     status: err.status,
     error: err,
@@ -33,15 +32,19 @@ const sendErrorProd = (err, res) => {
 
 const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}, ${err.value}.`;
-  // 400 is for the bad request!
   return new AppError(message, 400);
 };
 
 const handleDuplicateFieldDB = (err) => {
-  const firstKey = Object.keys(err.keyValue)[0]; // "plainKey"
+  const firstKey = Object.keys(err.keyValue)[0];
   const firstValue = Object.values(err.keyValue)[0];
   const message = `Duplicate ${firstKey} value: ${firstValue}. Please use another value!`;
-  // 400 is for the bad request!
+  return new AppError(message, 400);
+};
+
+const handleValidationErrorDB = (err) => {
+  const errors = Object.values(err.errors).map((el) => el.message);
+  const message = `Invalid Input data. ${errors.join('. ')}`;
   return new AppError(message, 400);
 };
 
@@ -56,6 +59,8 @@ module.exports = (err, req, res, next) => {
       err = handleCastErrorDB(err);
     } else if (err.code === 11000) {
       err = handleDuplicateFieldDB(err);
+    } else if (err.name === 'ValidationError') {
+      err = handleValidationErrorDB(err);
     }
 
     sendErrorProd(err, res);
